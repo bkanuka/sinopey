@@ -2,6 +2,7 @@
 import requests
 import json
 
+TIMEOUT = 30
 
 class Thermostat(object):
     MODE_MANUAL = "2"
@@ -33,16 +34,18 @@ class Thermostat(object):
 
     @property
     def temperature(self):
+        self.update()
         return self._temperature
 
     @property
     def setpoint(self):
+        self.update()
         return self._setpoint
 
     @setpoint.setter
     def setpoint(self, value):
         self._setpoint = value
-        self.update_thermostat()
+        self.set_thermostat()
 
     @property
     def mode(self):
@@ -51,7 +54,7 @@ class Thermostat(object):
     @mode.setter
     def mode(self, value):
         self._mode = value
-        self.update_thermostat()
+        self.set_thermostat()
 
     @property
     def name(self):
@@ -89,7 +92,14 @@ class Thermostat(object):
                                            self._heat_level,
                                            self._mode)
 
-    def update_thermostat(self):
+    def update(self):
+        r = requests.get(
+                "https://neviweb.com/api/device/{}/data?".format(self._id),
+                headers=self._headers,
+                timeout=TIMEOUT)
+        self.load_parameters_from_json(r.json())
+
+    def set_thermostat(self):
         params = {"temperature": self._setpoint,
                   "mode": self._mode}
 
@@ -100,7 +110,8 @@ class Thermostat(object):
     def _set_thermostat_value(self, name, params):
         r = requests.put("https://neviweb.com/api/device/{}/{}".format(self._id, name),
                          params,
-                         headers=self._headers)
+                         headers=self._headers,
+                         timeout=TIMEOUT)
 
         self.load_parameters_from_json(r.json())
 
@@ -187,7 +198,8 @@ class Gateway(object):
     def _set_gateway_value(self, name, params):
         r = requests.post("https://neviweb.com/api/gateway/{}/{}".format(self._id, name),
                           params,
-                          headers=self._headers)
+                          headers=self._headers,
+                          timeout=TIMEOUT)
         test = r.text
         print test
         self.load_from_json(r.json())
@@ -211,7 +223,8 @@ class PySinope(object):
 
         r = requests.post("https://neviweb.com/api/login",
                           data=login_parameters,
-                          headers=self._headers)
+                          headers=self._headers,
+                          timeout=TIMEOUT)
 
         response = r.json()
         self._session_id = response['session']
@@ -224,12 +237,14 @@ class PySinope(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
 
         requests.get("https://neviweb.com/api/logout",
-                     headers=self._headers)
+                     headers=self._headers,
+                     timeout=TIMEOUT)
         return self
 
     def read_gateway(self):
         r = requests.get("https://neviweb.com/api/gateway",
-                     headers=self._headers)
+                     headers=self._headers,
+                     timeout=TIMEOUT)
 
         for json_gateway in r.json():
             self._gateways.append(
@@ -238,7 +253,8 @@ class PySinope(object):
         for gateway in self._gateways:
             r = requests.get(
                     "https://neviweb.com/api/device?gatewayId={}".format(gateway.id),
-                    headers=self._headers)
+                    headers=self._headers,
+                    timeout=TIMEOUT)
 
             for json_thermostat in r.json():
                 gateway.thermostats.append(Thermostat(
@@ -250,7 +266,8 @@ class PySinope(object):
     def read_thermostat(self, thermostat):
         r = requests.get(
                 "https://neviweb.com/api/device/{}/data?".format(thermostat.id),
-                headers=self._headers)
+                headers=self._headers,
+                timeout=TIMEOUT)
 
         thermostat.load_parameters_from_json(r.json())
 
