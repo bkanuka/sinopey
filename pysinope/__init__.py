@@ -1,1 +1,0 @@
-from pysinope import *
