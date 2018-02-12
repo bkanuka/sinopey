@@ -1,14 +1,18 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
+from sinopey import __version__,\
+    __author__, \
+    __email__, \
+    __license__,\
+    __description__
 
 setup(
-    name='pysinope',
-    version='0.1.0',
-    packages=['pysinope'],
-    package_dir={'pysinope': 'pysinope'},
-    url='https://github.com/reid418/pysinope',
-    license='MIT',
-    author='Alex Reid',
-    author_email='alex.reid418@gmail.com',
-    description='Web scrapper that allows to read/write the Sinope '
-                'thermostats.'
+    name='sinopey',
+    version=__version__,
+    packages=find_packages(),
+    url='https://github.com/bkanuka/sinopey',
+    license=__license__,
+    author=__author__,
+    author_email=__email__,
+    description=__description__,
+    install_requires=['requests', 'PyYAML']
 )
