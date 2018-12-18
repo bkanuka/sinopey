@@ -4,8 +4,10 @@ import requests
 import logging
 
 class Thermostat(object):
+    MODE_Shutdown = 0
     MODE_MANUAL = 2
     MODE_AUTOMATIC = 3
+    Mode_Temporary_setpoint = 131
 
     def __init__(self, json, timeout=30, headers=None):
         self._headers = headers
@@ -34,12 +36,47 @@ class Thermostat(object):
         self._setpoint = None
         self._temperature = None
 
+
+# Modification Addition Francis
+#--------------------------------
+
+    @property
+    def Tstat_Name(self):
+        """Return current operation i.e. heat, cool, idle."""
+
+        if not self._init:
+            raise RuntimeError("Must run Thermostat.update() first")
+        return self._name
+    
+    @property
+    def alarm(self):
+        """Return current operation i.e. heat, cool, idle."""
+
+        if not self._init:
+            raise RuntimeError("Must run Thermostat.update() first")
+        return self._alarm
+
+
+
+    @property
+    def current_operation(self):
+        """Return current operation i.e. heat, cool, idle."""
+
+        if not self._init:
+            raise RuntimeError("Must run Thermostat.update() first")
+        return self._heatLevel
+        
+#---------------------------------
+
+    
     @property
     def temperature(self):
         if not self._init:
             raise RuntimeError("Must run Thermostat.update() first")
         return self._temperature
 
+
+    
     @property
     def setpoint(self):
         if not self._init:
@@ -52,10 +89,10 @@ class Thermostat(object):
             raise RuntimeError("Must run Thermostat.update() first")
         if (value > self._tempMax) or (value < self._tempMin):
             raise ValueError('Setpoint must be between {} and {}'.format(self._tempMin, self._tempMax))
-
+#--------------------------------------------------------------------------
         # Set the mode to manual before setting temp
-        self.mode = 2  # MODE_MANUAL
-
+        # self.mode = 2  # MODE_MANUAL MOD Francis
+#--------------------------------------------------------------------------
         params = {"temperature": value}
         self._set_thermostat_value("setpoint", params)
 
